@@ -149,7 +149,8 @@
       b = Groups.flip_autsymbol(2)*A(inv(Groups.rmul_autsymbol(1,2)))
       @test a*b == b*a
       @test a^3 * b^3 == A()
-      g,h = Nemo.gens(A)[[1,8]]
+      g = A(Groups.rmul_autsymbol(1,2))
+      h = A(Groups.rmul_autsymbol(3,2))
       domain = Nemo.gens(A.objectGroup)
       @test (g*h)(domain) == (h*g)(domain)
       @test (g*h).savedhash != (h*g).savedhash
