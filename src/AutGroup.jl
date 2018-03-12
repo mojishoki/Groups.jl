@@ -56,19 +56,19 @@ parent_type(::AutGroupElem) = AutGroup
 ###############################################################################
 
 function (ϱ::RTransvect)(v, pow=1::Int)
-    return [(k==ϱ.i ? v[ϱ.i]*v[ϱ.j]^pow : v[k]) for k in eachindex(v)]
+    return Tuple((k==ϱ.i ? v[ϱ.i]*v[ϱ.j]^pow : v[k]) for k in eachindex(v))
 end
 
 function (λ::LTransvect)(v, pow=1::Int)
-    return [(k==λ.i ? v[λ.j]^pow*v[λ.i] : v[k]) for k in eachindex(v)]
+    return Tuple((k==λ.i ? v[λ.j]^pow*v[λ.i] : v[k]) for k in eachindex(v))
 end
 
 function (σ::PermAut)(v, pow=1::Int)
-   return v[(σ.p^pow).d]
+    return Tuple(v[i] for i in (σ.p^pow).d)
 end
 
 function (ɛ::FlipAut)(v, pow=1::Int)
-   return [(k==ɛ.i ? v[k]^(-1^pow) : v[k]) for k in eachindex(v)]
+   return Tuple((k==ɛ.i ? v[k]^(-1^pow) : v[k]) for k in eachindex(v))
 end
 
 (::Identity)(v, pow=1::Int) = v
@@ -176,7 +176,7 @@ end
 #
 ###############################################################################
 
-function (f::AutSymbol){T}(v::Vector{GWord{T}})
+function (f::AutSymbol)(v)
    if f.pow == 0
       nothing
    else
@@ -185,7 +185,7 @@ function (f::AutSymbol){T}(v::Vector{GWord{T}})
    return v
 end
 
-function (F::AutGroupElem)(v::Vector)
+function (F::AutGroupElem)(v)
     for f in F.symbols
         v = f(v)
     end
@@ -202,7 +202,8 @@ hash(s::AutSymbol, h::UInt) = hash(s.str, hash(s.pow, hash(:AutSymbol, h)))
 
 function hash(g::AutGroupElem, h::UInt)
    if g.modified
-      g.savedhash = hash(g(gens(parent(g).objectGroup)), hash(typeof(g), hash(parent(g), h)))
+      t = Tuple(gens(parent(g).objectGroup))
+      g.savedhash = hash(g(t), hash(typeof(g), hash(parent(g), h)))
       g.modified = false
    end
    return g.savedhash
