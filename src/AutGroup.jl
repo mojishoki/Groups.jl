@@ -25,14 +25,14 @@ end
 struct Identity end
 
 struct AutSymbol <: GSymbol
-   str::String
-   pow::Int
-   typ::Union{LTransvect, RTransvect, PermAut, FlipAut, Identity}
+    str::String
+    pow::Int
+    typ::Union{LTransvect, RTransvect, PermAut, FlipAut, Identity}
 end
 
 mutable struct AutGroup{N} <: AbstractFPGroup
-   objectGroup::FreeGroup
-   gens::Vector{AutSymbol}
+    objectGroup::FreeGroup
+    gens::Vector{AutSymbol}
 end
 
 mutable struct Automorphism{N} <: GWord{AutSymbol}
@@ -74,19 +74,19 @@ function (λ::LTransvect)(v, pow=1::Int)
 end
 
 function (σ::PermAut)(v, pow=1::Int)
-   w = deepcopy(v)
-   s = (σ.p^pow).d
-   @inbounds for k in eachindex(v)
-       v[k].symbols = w[s[k]].symbols
-   end
-   return v
+    w = deepcopy(v)
+    s = (σ.p^pow).d
+    @inbounds for k in eachindex(v)
+        v[k].symbols = w[s[k]].symbols
+    end
+    return v
 end
 
 function (ɛ::FlipAut)(v, pow=1::Int)
-   @inbounds if isodd(pow)
-       v[ɛ.i].symbols = inv(v[ɛ.i]).symbols
-   end
-   return v
+    @inbounds if isodd(pow)
+        v[ɛ.i].symbols = inv(v[ɛ.i]).symbols
+    end
+    return v
 end
 
 (::Identity)(v, pow=1::Int) = v
@@ -99,7 +99,7 @@ function subscriptify(n::Integer)
 end
 
 function id_autsymbol()
-   return AutSymbol("(id)", 0, Identity())
+    return AutSymbol("(id)", 0, Identity())
 end
 
 function rmul_autsymbol(i, j; pow::Int=1)
@@ -115,7 +115,7 @@ end
 function flip_autsymbol(i; pow::Int=1)
     pow = (2+pow%2)%2
     if pow == 0
-       return id_autsymbol()
+        return id_autsymbol()
     else
         str = "ɛ"*subscriptify(i)
         return AutSymbol(str, pow, FlipAut(i))
@@ -125,16 +125,16 @@ end
 function perm_autsymbol(p::Generic.perm{Int8}; pow::Int=1)
     p = p^pow
     if p == parent(p)()
-       return id_autsymbol()
+        return id_autsymbol()
     else
-       str = "σ"*join([subscriptify(i) for i in p.d])
-       return AutSymbol(str, 1, PermAut(p))
+        str = "σ"*join([subscriptify(i) for i in p.d])
+        return AutSymbol(str, 1, PermAut(p))
     end
 end
 
 function perm_autsymbol(a::Vector{T}) where T<:Integer
-   G = PermutationGroup(Int8(length(a)))
-   return perm_autsymbol(G(Vector{Int8}(a)))
+    G = PermutationGroup(Int8(length(a)))
+    return perm_autsymbol(G(Vector{Int8}(a)))
 end
 
 domain(G::AutGroup)= NTuple{length(G.objectGroup.gens), FreeGroupElem}(gens(G.objectGroup))
@@ -146,25 +146,24 @@ domain(G::AutGroup)= NTuple{length(G.objectGroup.gens), FreeGroupElem}(gens(G.ob
 ###############################################################################
 
 function AutGroup(G::FreeGroup; special=false)
-   n = length(gens(G))
-   n == 0 && return AutGroup{n}(G, AutSymbol[])
-   S = AutSymbol[]
+    n = length(gens(G))
+    n == 0 && return AutGroup{n}(G, AutSymbol[])
+    S = AutSymbol[]
 
-   indexing = [[i,j] for i in 1:n for j in 1:n if i≠j]
+    indexing = [[i,j] for i in 1:n for j in 1:n if i≠j]
 
-   rmuls = [rmul_autsymbol(i,j) for (i,j) in indexing]
-   lmuls = [lmul_autsymbol(i,j) for (i,j) in indexing]
+    rmuls = [rmul_autsymbol(i,j) for (i,j) in indexing]
+    lmuls = [lmul_autsymbol(i,j) for (i,j) in indexing]
 
-   append!(S, [rmuls; lmuls])
+    append!(S, [rmuls; lmuls])
 
-   if !special
-      flips = [flip_autsymbol(i) for i in 1:n]
-      syms = [perm_autsymbol(p) for p in elements(PermutationGroup(Int8(n)))][2:end]
+    if !special
+        flips = [flip_autsymbol(i) for i in 1:n]
+        syms = [perm_autsymbol(p) for p in elements(PermutationGroup(Int8(n)))][2:end]
 
-      append!(S, [flips; syms])
-
-   end
-   return AutGroup{n}(G, S)
+        append!(S, [flips; syms])
+    end
+    return AutGroup{n}(G, S)
 end
 
 ###############################################################################
@@ -178,20 +177,20 @@ function convert(::Type{Automorphism{N}}, s::AutSymbol) where N
 end
 
 function (G::AutGroup{N})() where N
-   id = Automorphism{N}(id_autsymbol())
-   id.parent = G
-   return id
+    id = Automorphism{N}(id_autsymbol())
+    id.parent = G
+    return id
 end
 
 function (G::AutGroup{N})(f::AutSymbol) where N
-   g = Automorphism{N}([f])
-   g.parent = G
-   return g
+    g = Automorphism{N}([f])
+    g.parent = G
+    return g
 end
 
 function (G::AutGroup{N})(g::Automorphism{N}) where N
-   g.parent = G
-   return g
+    g.parent = G
+    return g
 end
 
 ###############################################################################
@@ -201,12 +200,12 @@ end
 ###############################################################################
 
 function (f::AutSymbol)(v::NTuple{N, T}) where {N, T}
-   if f.pow == 0
-      nothing
-   else
-      v = f.typ(v, f.pow)::NTuple{N, T}
-   end
-   return v
+    if f.pow == 0
+        nothing
+    else
+        v = f.typ(v, f.pow)::NTuple{N, T}
+    end
+    return v
 end
 
 function (F::Automorphism{N})(v::NTuple{N, T}) where {N, T}
@@ -264,8 +263,8 @@ length(s::AutSymbol) = abs(s.pow)
 ###############################################################################
 
 function show(io::IO, G::AutGroup)
-   print(io, "Automorphism Group of $(G.objectGroup)\n")
-   print(io, "Generated by $(join(G.gens, ","))")
+    print(io, "Automorphism Group of $(G.objectGroup)\n")
+    print(io, "Generated by $(join(G.gens, ","))")
 end
 
 ###############################################################################
