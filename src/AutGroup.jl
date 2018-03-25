@@ -38,11 +38,10 @@ end
 mutable struct Automorphism{N} <: GWord{AutSymbol}
     symbols::Vector{AutSymbol}
     modified::Bool
-    savedhash::UInt
     savedimage::NTuple{N, FreeGroupElem}
     parent::AutGroup{N}
 
-    Automorphism{N}(f::Vector{AutSymbol}) where N = new(f, true, UInt(0))
+    Automorphism{N}(f::Vector{AutSymbol}) where N = new(f, true)
 
 end
 
@@ -225,12 +224,14 @@ end
 
 hash(s::AutSymbol, h::UInt) = hash(s.str, hash(s.pow, hash(:AutSymbol, h)))
 
+function image!(g::Automorphism)
+    g.savedimage = g(domain(parent(g)))
+    g.modified = false
+end
+
 function hash(g::Automorphism, h::UInt)
-   if g.modified
-      g.savedhash = hash(g(domain(parent(g))), hash(typeof(g), hash(parent(g), h)))
-      g.modified = false
-   end
-   return g.savedhash
+    g.modified && image!(g)
+    return hash(g.savedimage, hash(typeof(g), hash(parent(g), h)))
 end
 
 function change_pow(s::AutSymbol, n::Int)
@@ -276,8 +277,9 @@ end
 (==)(s::AutSymbol, t::AutSymbol) = s.str == t.str && s.pow == t.pow
 
 function (==)(g::Automorphism, h::Automorphism)
-   parent(g) == parent(h) || return false
-   return g(domain(parent(g))) == h(domain(parent(h)))
+    g.modified && image!(g)
+    h.modified && image!(h)
+    return g.savedimage == h.savedimage
 end
 
 ###############################################################################
