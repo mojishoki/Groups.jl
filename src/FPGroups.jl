@@ -1,21 +1,21 @@
 ###############################################################################
 #
-#   FPSymbol/FPGroupElem/FPGroup definition
+#   FPSyllable/FPGroupElem/FPGroup definition
 #
 ###############################################################################
 
-struct FPSymbol <: GSymbol
+struct FPSyllable <: Syllable
    id::Symbol
    pow::Int
 end
 
-FPGroupElem = GroupWord{FPSymbol}
+FPGroupElem = GroupWord{FPSyllable}
 
 mutable struct FPGroup <: AbstractFPGroup
-   gens::Vector{FPSymbol}
+   gens::Vector{FPSyllable}
    rels::Dict{FPGroupElem, FPGroupElem}
 
-   function FPGroup(gens::Vector{T}, rels::Dict{FPGroupElem, FPGroupElem}) where {T<:GSymbol}
+   function FPGroup(gens::Vector{T}, rels::Dict{FPGroupElem, FPGroupElem}) where {T<:Syllable}
       G = new(gens)
       G.rels = Dict(G(k) => G(v) for (k,v) in rels)
       return G
@@ -36,21 +36,21 @@ elem_type(::FPGroup) = FPGroupElem
 
 ###############################################################################
 #
-#   FPSymbol constructors
+#   FPSyllable constructors
 #
 ###############################################################################
 
-FPSymbol(s::Symbol) = FPSymbol(s, 1)
-FPSymbol(s::String) = FPSymbol(Symbol(s))
+FPSyllable(s::Symbol) = FPSyllable(s, 1)
+FPSyllable(s::String) = FPSyllable(Symbol(s))
 
-convert(::Type{FPSymbol}, s::FreeSymbol) = FPSymbol(s.id, s.pow)
+convert(::Type{FPSyllable}, s::FreeSyllable) = FPSyllable(s.id, s.pow)
 
-FPGroup(gens::Vector{FPSymbol}) = FPGroup(gens, Dict{FPGroupElem, FPGroupElem}())
+FPGroup(gens::Vector{FPSyllable}) = FPGroup(gens, Dict{FPGroupElem, FPGroupElem}())
 
-FPGroup(a::Vector{String}) = FPGroup([FPSymbol(i) for i in a])
+FPGroup(a::Vector{String}) = FPGroup([FPSyllable(i) for i in a])
 
 FPGroup(n::Int, symbol::String="f") = FPGroup(["$symbol$i" for i in 1:n])
-FPGroup(H::FreeGroup) = FPGroup([FPSymbol(s) for s in H.gens])
+FPGroup(H::FreeGroup) = FPGroup([FPSyllable(s) for s in H.gens])
 
 ###############################################################################
 #
@@ -59,7 +59,7 @@ FPGroup(H::FreeGroup) = FPGroup([FPSymbol(s) for s in H.gens])
 ###############################################################################
 
 function (G::FPGroup)()
-   id = FPGroupElem(FPSymbol[])
+   id = FPGroupElem(FPSyllable[])
    id.parent = G
    return id
 end
@@ -69,14 +69,14 @@ function (G::FPGroup)(w::GWord)
       return G()
    end
 
-   if eltype(w.symbols) == FreeSymbol
+   if eltype(w.symbols) == FreeSyllable
       w = FPGroupElem(w.symbols)
    end
 
-   if eltype(w.symbols) == FPSymbol
+   if eltype(w.symbols) == FPSyllable
       for s in w.symbols
          i = findfirst(g -> g.id == s.id, G.gens)
-         i == 0 && throw(DomainError(
+         i == nothing && throw(DomainError(
             "Symbol $s does not belong to $G."))
          s.pow % G.gens[i].pow == 0 || throw(DomainError(
          "Symbol $s doesn't belong to $G."))
@@ -86,7 +86,7 @@ function (G::FPGroup)(w::GWord)
    return reduce!(w)
 end
 
-(G::FPGroup)(s::FPSymbol) = G(FPGroupElem(s))
+(G::FPGroup)(s::FPSyllable) = G(FPGroupElem(s))
 
 ###############################################################################
 #
@@ -94,11 +94,11 @@ end
 #
 ###############################################################################
 
-hash(s::FPSymbol, h::UInt) = hash(s.id, hash(s.pow, hash(FPSymbol, h)))
+hash(s::FPSyllable, h::UInt) = hash(s.id, hash(s.pow, hash(FPSyllable, h)))
 
-change_pow(s::FPSymbol, n::Int) = FPSymbol(s.id, n)
+change_pow(s::FPSyllable, n::Int) = FPSyllable(s.id, n)
 
-length(s::FPSymbol) = abs(s.pow)
+length(s::FPSyllable) = abs(s.pow)
 
 ###############################################################################
 #
@@ -128,7 +128,7 @@ end
 #
 ###############################################################################
 
-inv(s::FPSymbol) = change_pow(s, -s.pow)
+inv(s::FPSyllable) = change_pow(s, -s.pow)
 
 ###############################################################################
 #
@@ -137,8 +137,8 @@ inv(s::FPSymbol) = change_pow(s, -s.pow)
 ###############################################################################
 
 (*)(W::FPGroupElem, Z::FPGroupElem) = r_multiply(W, Z.symbols)
-(*)(W::FPGroupElem, s::FPSymbol) = r_multiply(W, [s])
-(*)(s::FPSymbol, W::FPGroupElem) = l_multiply(W, [s])
+(*)(W::FPGroupElem, s::FPSyllable) = r_multiply(W, [s])
+(*)(s::FPSyllable, W::FPGroupElem) = l_multiply(W, [s])
 
 function reduce!(W::FPGroupElem)
     if length(W) < 2

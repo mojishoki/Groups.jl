@@ -1,20 +1,20 @@
 ###############################################################################
 #
-#   FreeSymbol/FreeGroupElem/FreeGroup definition
+#   FreeSyllable/FreeGroupElem/FreeGroup definition
 #
 ###############################################################################
 
-struct FreeSymbol <: GSymbol
+struct FreeSyllable <: Syllable
    id::Symbol
    pow::Int
 end
 
-FreeGroupElem = GroupWord{FreeSymbol}
+FreeGroupElem = GroupWord{FreeSyllable}
 
 mutable struct FreeGroup <: AbstractFPGroup
-   gens::Vector{FreeSymbol}
+   gens::Vector{FreeSyllable}
 
-   function FreeGroup(gens::Vector{T}) where {T<:GSymbol}
+   function FreeGroup(gens::Vector{T}) where {T<:Syllable}
       G = new(gens)
       G.gens = gens
       return G
@@ -35,16 +35,16 @@ parent_type(::Type{FreeGroupElem}) = FreeGroup
 
 ###############################################################################
 #
-#   FreeSymbol constructors
+#   FreeSyllable constructors
 #
 ###############################################################################
 
-FreeSymbol(s::Symbol) = FreeSymbol(s,1)
-FreeSymbol(s::String) = FreeSymbol(Symbol(s))
+FreeSyllable(s::Symbol) = FreeSyllable(s,1)
+FreeSyllable(s::String) = FreeSyllable(Symbol(s))
 
 FreeGroup(n::Int, symbol::String="f") = FreeGroup([Symbol(symbol,i) for i in 1:n])
 
-FreeGroup(a::Vector) = FreeGroup(FreeSymbol.(a))
+FreeGroup(a::Vector) = FreeGroup(FreeSyllable.(a))
 
 ###############################################################################
 #
@@ -53,12 +53,12 @@ FreeGroup(a::Vector) = FreeGroup(FreeSymbol.(a))
 ###############################################################################
 
 function (G::FreeGroup)()
-   id = FreeGroupElem(FreeSymbol[])
+   id = FreeGroupElem(FreeSyllable[])
    id.parent = G
    return id
 end
 
-function (G::FreeGroup)(w::GroupWord{FreeSymbol})
+function (G::FreeGroup)(w::GroupWord{FreeSyllable})
    if length(w) > 0
       for s in w.symbols
          i = findfirst(g -> g.id == s.id, G.gens)
@@ -72,7 +72,7 @@ function (G::FreeGroup)(w::GroupWord{FreeSymbol})
    return w
 end
 
-(G::FreeGroup)(s::FreeSymbol) = G(FreeGroupElem(s))
+(G::FreeGroup)(s::FreeSyllable) = G(FreeGroupElem(s))
 
 ###############################################################################
 #
@@ -80,11 +80,11 @@ end
 #
 ###############################################################################
 
-hash(s::FreeSymbol, h::UInt) = hash(s.id, hash(s.pow, hash(FreeSymbol, h)))
+hash(s::FreeSyllable, h::UInt) = hash(s.id, hash(s.pow, hash(FreeSyllable, h)))
 
-change_pow(s::FreeSymbol, n::Int) = FreeSymbol(s.id, n)
+change_pow(s::FreeSyllable, n::Int) = FreeSyllable(s.id, n)
 
-length(s::FreeSymbol) = abs(s.pow)
+length(s::FreeSyllable) = abs(s.pow)
 
 ###############################################################################
 #
@@ -109,4 +109,4 @@ end
 #
 ###############################################################################
 
-inv(s::FreeSymbol) = change_pow(s, -s.pow)
+inv(s::FreeSyllable) = change_pow(s, -s.pow)

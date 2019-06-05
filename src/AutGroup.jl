@@ -1,6 +1,6 @@
 ###############################################################################
 #
-#   AutSymbol/ AutGroup / Automorphism
+#   AutSyllable/ AutGroup / Automorphism
 #
 ###############################################################################
 
@@ -24,7 +24,7 @@ end
 
 struct Identity end
 
-struct AutSymbol <: GSymbol
+struct AutSyllable <: Syllable
    id::Symbol
    pow::Int8
    fn::Union{LTransvect, RTransvect, PermAut, FlipAut, Identity}
@@ -32,16 +32,16 @@ end
 
 mutable struct AutGroup{N} <: AbstractFPGroup
    objectGroup::FreeGroup
-   gens::Vector{AutSymbol}
+   gens::Vector{AutSyllable}
 end
 
-mutable struct Automorphism{N} <: GWord{AutSymbol}
-    symbols::Vector{AutSymbol}
+mutable struct Automorphism{N} <: GWord{AutSyllable}
+    symbols::Vector{AutSyllable}
     modified::Bool
     savedhash::UInt
     parent::AutGroup{N}
 
-    function Automorphism{N}(f::Vector{AutSymbol}) where {N}
+    function Automorphism{N}(f::Vector{AutSyllable}) where {N}
         return new{N}(f, true, zero(UInt))
     end
 end
@@ -60,7 +60,7 @@ parent_type(::Automorphism{N}) where N = AutGroup{N}
 
 ###############################################################################
 #
-#   AutSymbol defining functions
+#   AutSyllable defining functions
 #
 ###############################################################################
 
@@ -108,17 +108,17 @@ function subscriptify(n::Integer)
 end
 
 function id_autsymbol()
-   return AutSymbol(Symbol("(id)"), 0, Identity())
+   return AutSyllable(Symbol("(id)"), 0, Identity())
 end
 
 function rmul_autsymbol(i::Integer, j::Integer; pow::Integer=1)
     id = Symbol("ϱ", subscriptify(i), subscriptify(j))
-    return AutSymbol(id, pow, RTransvect(i, j))
+    return AutSyllable(id, pow, RTransvect(i, j))
 end
 
 function lmul_autsymbol(i::Integer, j::Integer; pow::Integer=1)
     id = Symbol("λ", subscriptify(i), subscriptify(j))
-    return AutSymbol(id, pow, LTransvect(i, j))
+    return AutSyllable(id, pow, LTransvect(i, j))
 end
 
 function flip_autsymbol(i::Integer; pow::Integer=1)
@@ -126,7 +126,7 @@ function flip_autsymbol(i::Integer; pow::Integer=1)
        return id_autsymbol()
     else
         id = Symbol("ɛ", subscriptify(i))
-        return AutSymbol(id, 1, FlipAut(i))
+        return AutSyllable(id, 1, FlipAut(i))
     end
 end
 
@@ -137,7 +137,7 @@ function perm_autsymbol(p::Generic.perm{I}; pow::Integer=one(I)) where I<:Intege
     for i in eachindex(p.d)
         if p.d[i] != i
             id = Symbol("σ", [subscriptify(i) for i in p.d]...)
-            return AutSymbol(id, 1, PermAut(p))
+            return AutSyllable(id, 1, PermAut(p))
         end
     end
     return id_autsymbol()
@@ -160,7 +160,7 @@ end
 ###############################################################################
 
 function AutGroup(G::FreeGroup; special=false)
-   S = AutSymbol[]
+   S = AutSyllable[]
    n = length(gens(G))
    n == 0 && return AutGroup{n}(G, S)
 
@@ -190,7 +190,7 @@ SAut(G::Group) = AutGroup(G, special=true)
 #
 ###############################################################################
 
-Automorphism{N}(s::AutSymbol) where N = Automorphism{N}(AutSymbol[s])
+Automorphism{N}(s::AutSyllable) where N = Automorphism{N}(AutSyllable[s])
 
 function (G::AutGroup{N})() where N
    id = Automorphism{N}(id_autsymbol())
@@ -198,7 +198,7 @@ function (G::AutGroup{N})() where N
    return id
 end
 
-function (G::AutGroup{N})(f::AutSymbol) where N
+function (G::AutGroup{N})(f::AutSyllable) where N
    g = Automorphism{N}([f])
    g.parent = G
    return g
@@ -211,11 +211,11 @@ end
 
 ###############################################################################
 #
-#   Functional call overloads for evaluation of AutSymbol and Automorphism
+#   Functional call overloads for evaluation of AutSyllable and Automorphism
 #
 ###############################################################################
 
-function (f::AutSymbol)(v::NTuple{N, T}) where {N, T}
+function (f::AutSyllable)(v::NTuple{N, T}) where {N, T}
    if f.pow != 0
       v = f.fn(v, f.pow)::NTuple{N, T}
    end
@@ -237,7 +237,7 @@ end
 
 const HASHINGCONST = 0x7d28276b01874b19 # hash(Automorphism)
 
-hash(s::AutSymbol, h::UInt) = hash(s.id, hash(s.pow, hash(:AutSymbol, h)))
+hash(s::AutSyllable, h::UInt) = hash(s.id, hash(s.pow, hash(:AutSyllable, h)))
 
 function hash(g::Automorphism, h::UInt)
     if g.modified
@@ -275,7 +275,7 @@ end
 #
 ###############################################################################
 
-function change_pow(s::AutSymbol, n::Integer)
+function change_pow(s::AutSyllable, n::Integer)
     if n == zero(n)
         return id_autsymbol()
     end
@@ -292,11 +292,11 @@ function change_pow(s::AutSymbol, n::Integer)
         return s
     else
         warn("Changing power of an unknown type of symbol! $s")
-        return AutSymbol(s.id, n, s.fn)
+        return AutSyllable(s.id, n, s.fn)
     end
 end
 
-length(s::AutSymbol) = abs(s.pow)
+length(s::AutSyllable) = abs(s.pow)
 
 ###############################################################################
 #
@@ -321,7 +321,7 @@ end
 #
 ###############################################################################
 
-inv(f::AutSymbol) = change_pow(f, -f.pow)
+inv(f::AutSyllable) = change_pow(f, -f.pow)
 
 ###############################################################################
 #
@@ -329,7 +329,7 @@ inv(f::AutSymbol) = change_pow(f, -f.pow)
 #
 ###############################################################################
 
-function getperm(s::AutSymbol)
+function getperm(s::AutSyllable)
     if s.pow != 1
         @warn("Power for perm_symbol should be never 0!")
         return s.fn.perm^s.pow
@@ -378,7 +378,7 @@ function linear_repr(A::Automorphism{N}, hom=matrix_repr) where N
     return reduce(*, linear_repr.(A.symbols, N, hom), init=hom(Identity(),N,1))
 end
 
-linear_repr(a::AutSymbol, n::Int, hom) = hom(a.fn, n, a.pow)
+linear_repr(a::AutSyllable, n::Int, hom) = hom(a.fn, n, a.pow)
 
 function matrix_repr(a::Union{RTransvect, LTransvect}, n::Int, pow)
     x = Matrix{Int}(I, n, n)

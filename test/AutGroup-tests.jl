@@ -2,16 +2,16 @@
 
    G = PermutationGroup(Int8(4))
 
-   @testset "AutSymbol" begin
-      @test_throws MethodError Groups.AutSymbol(:a)
-      @test_throws MethodError Groups.AutSymbol(:a, 1)
-      f = Groups.AutSymbol(:a, 1, Groups.FlipAut(2))
-      @test isa(f, Groups.GSymbol)
-      @test isa(f, Groups.AutSymbol)
-      @test isa(Groups.perm_autsymbol(Int8.([1,2,3,4])), Groups.AutSymbol)
-      @test isa(Groups.rmul_autsymbol(1,2), Groups.AutSymbol)
-      @test isa(Groups.lmul_autsymbol(3,4), Groups.AutSymbol)
-      @test isa(Groups.flip_autsymbol(3), Groups.AutSymbol)
+   @testset "AutSyllable" begin
+      @test_throws MethodError Groups.AutSyllable(:a)
+      @test_throws MethodError Groups.AutSyllable(:a, 1)
+      f = Groups.AutSyllable(:a, 1, Groups.FlipAut(2))
+      @test isa(f, Groups.Syllable)
+      @test isa(f, Groups.AutSyllable)
+      @test isa(Groups.perm_autsymbol(Int8.([1,2,3,4])), Groups.AutSyllable)
+      @test isa(Groups.rmul_autsymbol(1,2), Groups.AutSyllable)
+      @test isa(Groups.lmul_autsymbol(3,4), Groups.AutSyllable)
+      @test isa(Groups.flip_autsymbol(3), Groups.AutSyllable)
    end
 
    a,b,c,d = gens(FreeGroup(4))
@@ -82,7 +82,7 @@
 
    @testset "AutGroup/Automorphism constructors" begin
 
-      f = Groups.AutSymbol(:a, 1, Groups.FlipAut(1))
+      f = Groups.AutSyllable(:a, 1, Groups.FlipAut(1))
       @test isa(Automorphism{3}(f), Groups.GWord)
       @test isa(Automorphism{3}(f), Automorphism)
       @test isa(AutGroup(FreeGroup(3)), AbstractAlgebra.Group)
@@ -128,7 +128,7 @@
       @test (inv(f)).pow == 1
 
       f = Groups.perm_autsymbol([2,1,4,3])
-      @test isa(inv(f), Groups.AutSymbol)
+      @test isa(inv(f), Groups.AutSyllable)
 
       @test_throws MethodError f*f
 
@@ -191,7 +191,7 @@
       N = 4
       G = AutGroup(FreeGroup(N))
       S = G.gens
-      @test isa(S, Vector{Groups.AutSymbol})
+      @test isa(S, Vector{Groups.AutSyllable})
       S = [G(s) for s in unique(S)]
       @test isa(S, Vector{Automorphism{N}})
       @test S == gens(G)

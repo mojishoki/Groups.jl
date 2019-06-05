@@ -22,19 +22,19 @@ using Markdown
 ###############################################################################
 
 @doc doc"""
-    ::GSymbol
+    ::Syllable
 > Abstract type which all group symbols of AbstractFPGroups should subtype. Each
 > concrete subtype should implement fields:
 > * `id` which is the `Symbol` representation/identification of a symbol
 > * `pow` which is the (multiplicative) exponent of a symbol.
 
 """
-abstract type GSymbol end
+abstract type Syllable end
 
-abstract type GWord{T<:GSymbol} <:GroupElem end
+abstract type GWord{T<:Syllable} <:GroupElem end
 
 @doc doc"""
-    W::GroupWord{T} <: GWord{T<:GSymbol} <:GroupElem
+    W::GroupWord{T} <: GWord{T<:Syllable} <:GroupElem
 > Basic representation of element of a finitely presented group. `W.symbols`
 > fieldname contains particular group symbols which multiplied constitute a
 > group element, i.e. a word in generators.
@@ -80,7 +80,7 @@ include("WreathProducts.jl")
 #
 ###############################################################################
 
-parent(w::GWord{T}) where {T<:GSymbol} = w.parent
+parent(w::GWord{T}) where {T<:Syllable} = w.parent
 
 ###############################################################################
 #
@@ -88,10 +88,10 @@ parent(w::GWord{T}) where {T<:GSymbol} = w.parent
 #
 ###############################################################################
 
-GroupWord(s::T) where {T<:GSymbol} = GroupWord{T}(T[s])
-GroupWord{T}(s::T) where {T<:GSymbol} = GroupWord{T}(T[s])
-GroupWord(w::GroupWord{T}) where {T<:GSymbol} = w
-convert(::Type{GroupWord{T}}, s::T) where {T<:GSymbol} = GroupWord{T}(T[s])
+GroupWord(s::T) where {T<:Syllable} = GroupWord{T}(T[s])
+GroupWord{T}(s::T) where {T<:Syllable} = GroupWord{T}(T[s])
+GroupWord(w::GroupWord{T}) where {T<:Syllable} = w
+convert(::Type{GroupWord{T}}, s::T) where {T<:Syllable} = GroupWord{T}(T[s])
 
 ###############################################################################
 #
@@ -193,7 +193,7 @@ function show(io::IO, W::GWord)
     end
 end
 
-function show(io::IO, s::T) where {T<:GSymbol}
+function show(io::IO, s::T) where {T<:Syllable}
    if s.pow == 1
       print(io, string(s.id))
    else
@@ -220,7 +220,7 @@ function (==)(W::GWord, Z::GWord)
     return W.symbols == Z.symbols
 end
 
-function (==)(s::GSymbol, t::GSymbol)
+function (==)(s::Syllable, t::Syllable)
    s.pow == t.pow || return false
    s.pow ==  0 && return true
    s.id == t.id || return false
@@ -259,8 +259,8 @@ l_multiply(W::GWord, x; reduced=true) =
     l_multiply!(deepcopy(W),x, reduced=reduced)
 
 (*)(W::GWord, Z::GWord) = r_multiply(W, Z.symbols)
-(*)(W::GWord, s::GSymbol) = r_multiply(W, [s])
-(*)(s::GSymbol, W::GWord) = l_multiply(W, [s])
+(*)(W::GWord, s::Syllable) = r_multiply(W, [s])
+(*)(s::Syllable, W::GWord) = l_multiply(W, [s])
 
 function power_by_squaring(W::GWord, p::Integer)
     if p < 0
@@ -315,7 +315,7 @@ end
 #
 ###############################################################################
 
-issubsymbol(s::GSymbol, t::GSymbol) =
+issubsymbol(s::Syllable, t::Syllable) =
     s.id == t.id && (0 ≤ s.pow ≤ t.pow || 0 ≥ s.pow ≥ t.pow)
 
 """doc
