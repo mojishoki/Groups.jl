@@ -223,7 +223,7 @@ function (f::AutSymbol)(v::NTuple{N, T}) where {N, T}
 end
 
 function (F::Automorphism{N})(v::NTuple{N, T}) where {N, T}
-    for f in F.symbols
+    for f in reverse(F.symbols)
         v = f(v)::NTuple{N, T}
     end
     return v
